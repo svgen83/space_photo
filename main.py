@@ -27,22 +27,22 @@ def fetch_spacex_lunch(get_image=get_image):
         get_image(link, filename)
 
 
-def get_extencion(url):
+def get_extension(url):
     u = unquote(url)
     split_url_result = urlsplit(u)
     split_path_result = os.path.split(split_url_result.path)
     split_name_results = os.path.splitext(split_path_result[1])
-    extencion = split_name_results[1]
-    return extencion
+    extension = split_name_results[1]
+    return extension
 
 
-def fetch_nasa_apod(get_image=get_image, get_extencion=get_extencion):
+def fetch_nasa_apod(get_image=get_image, get_extension=get_extension):
     pathlib.Path('./images/images_NASA').mkdir(parents=True, exist_ok=True)
     nasa_endpoint = "https://api.nasa.gov/planetary/apod"
     images_quantity = 50
     params = {"api_key": token, "count": images_quantity}
     response = requests.get(nasa_endpoint, params=params)
-    response.raise_for_status
+    response.raise_for_status()
     image_descriptions = response.json()
     image_urls = []
     for image_description in image_descriptions:
@@ -50,7 +50,7 @@ def fetch_nasa_apod(get_image=get_image, get_extencion=get_extencion):
         image_urls.append(image_url)
     for image_url in image_urls:
         url, title = image_url
-        ext = get_extencion(url)
+        ext = get_extension(url)
         if ext != None:
             filename = "images/images_NASA/{title}{ext}".format(title=title, ext=ext)
             get_image(url, filename)
@@ -61,7 +61,7 @@ def fetch_nasa_epic(get_image=get_image):
     epic_endpoint = "https://api.nasa.gov/EPIC/api/natural/images"
     params = {"api_key": token}
     response = requests.get(epic_endpoint, params=params)
-    response.raise_for_status
+    response.raise_for_status()
     image_descriptions = response.json()
     image_endpoint = "https://api.nasa.gov/EPIC/archive/natural/{file_date}/png/{title}.png"
     image_names = []
@@ -75,7 +75,7 @@ def fetch_nasa_epic(get_image=get_image):
         response = requests.get(image_endpoint.format(file_date=file_date,
                                                       title=title),
                                 params={"api_key": token})
-        response.raise_for_status
+        response.raise_for_status()
         url = response.url
         filename = "images/images_EPIC/{title}.png".format(title=title)
         get_image(url, filename)
@@ -84,7 +84,7 @@ def fetch_nasa_epic(get_image=get_image):
 if __name__ == "__main__":
     load_dotenv()
     token = os.getenv("NASA_TOKEN")
-    fetch_nasa_apod(get_image=get_image, get_extencion=get_extencion)
+    fetch_nasa_apod(get_image=get_image, get_extension=get_extension)
     fetch_nasa_epic(get_image=get_image)
     fetch_spacex_lunch(get_image=get_image)
     
