@@ -1,90 +1,92 @@
 import requests
 import pathlib
-import os.path
 import os
 from urllib.parse import urlsplit
 from urllib.parse import unquote
 import datetime
+import random
 from dotenv import load_dotenv
 
 
-def get_image(url, filename):
-    response = requests.get(url)
+def make_directory(path_name):
+    pathlib.Path(path_name).mkdir(parents=True, exist_ok=True)
+
+def get_image(url, file_name, params = None):
+    response = requests.get(url, params)
     response.raise_for_status()
-    with open(filename, 'wb') as file:
+    with open(file_name, 'wb') as file:
         file.write(response.content)
 
 
-def fetch_spacex_lunch(get_image=get_image):
-    pathlib.Path('./images/images_SPACEX').mkdir(parents=True, exist_ok=True)
+def get_extension(url):
+    unquoted_url = unquote(url)
+    splitted_url = urlsplit(unquoted_url)
+    splitted_url_path = os.path.splitext(splitted_url.path)
+    extension = splitted_url_path[1]
+    return extension
+
+
+def fetch_spacex_lunch(flight_number, template_name, get_image):
     spacex_url = "https://api.spacexdata.com/v4/launches/"
-    flight_number = 118
     response = requests.get(spacex_url)
     response.raise_for_status()
     links = response.json()[flight_number]["links"]["flickr"]["original"]
     for filenumber, link in enumerate(links):
-        filename = "images/images_SPACEX/spacex{}.jpg".format(filenumber)
-        get_image(link, filename)
+        file_name = spacex_template_name.format(filenumber)
+        get_image(link, file_name)
 
-
-def get_extension(url):
-    u = unquote(url)
-    split_url_result = urlsplit(u)
-    split_path_result = os.path.split(split_url_result.path)
-    split_name_results = os.path.splitext(split_path_result[1])
-    extension = split_name_results[1]
-    return extension
-
-
-def fetch_nasa_apod(get_image=get_image, get_extension=get_extension):
-    pathlib.Path('./images/images_NASA').mkdir(parents=True, exist_ok=True)
+        
+def fetch_nasa_apod(token, images_quantity, template_name, get_image, get_extension):
     nasa_endpoint = "https://api.nasa.gov/planetary/apod"
-    images_quantity = 50
     params = {"api_key": token, "count": images_quantity}
     response = requests.get(nasa_endpoint, params=params)
     response.raise_for_status()
     image_descriptions = response.json()
-    image_urls = []
     for image_description in image_descriptions:
-        image_url = image_description["url"], image_description["title"]
-        image_urls.append(image_url)
-    for image_url in image_urls:
-        url, title = image_url
+        url = image_description["url"]
+        title = image_description["title"]
         ext = get_extension(url)
-        if ext != None:
-            filename = "images/images_NASA/{title}{ext}".format(title=title, ext=ext)
-            get_image(url, filename)
+        file_name = nasa_apod_template_name.format(title=title, ext=ext)
+        get_image(url, file_name)
 
 
-def fetch_nasa_epic(get_image=get_image):
-    pathlib.Path('./images/images_EPIC').mkdir(parents=True, exist_ok=True)
+def fetch_nasa_epic(token, template_name, get_image):
     epic_endpoint = "https://api.nasa.gov/EPIC/api/natural/images"
     params = {"api_key": token}
     response = requests.get(epic_endpoint, params=params)
     response.raise_for_status()
     image_descriptions = response.json()
     image_endpoint = "https://api.nasa.gov/EPIC/archive/natural/{file_date}/png/{title}.png"
-    image_names = []
     for image_description in image_descriptions:
-        image_name = image_description["image"], image_description["date"]
-        image_names.append(image_name)
-    for image_name in image_names:
-        title, image_date = image_name
-        aDateTime = datetime.datetime.fromisoformat(image_date)
-        file_date = aDateTime.strftime("%Y/%m/%d")
-        response = requests.get(image_endpoint.format(file_date=file_date,
-                                                      title=title),
-                                params={"api_key": token})
-        response.raise_for_status()
-        url = response.url
-        filename = "images/images_EPIC/{title}.png".format(title=title)
-        get_image(url, filename)
+        title = image_description["image"]
+        image_date = image_description["date"]
+        a_date_time = datetime.datetime.fromisoformat(image_date)
+        file_date = a_date_time.strftime("%Y/%m/%d")
+        url = image_endpoint.format(file_date=file_date, title=title)
+        file_name = nasa_epic_template_name.format(title=title)
+        get_image(url, file_name, params=params)
 
 
 if __name__ == "__main__":
     load_dotenv()
     token = os.getenv("NASA_TOKEN")
-    fetch_nasa_apod(get_image=get_image, get_extension=get_extension)
-    fetch_nasa_epic(get_image=get_image)
-    fetch_spacex_lunch(get_image=get_image)
+    
+    flight_number = random.randint(1,157)
+    images_quantity = 30
+
+    spacex_path_name = './images/images_SPACEX'
+    nasa_apod_path_name = './images/images_NASA'
+    nasa_epic_path_name = './images/images_EPIC'
+
+    spacex_template_name = "images/images_SPACEX/spacex{}.jpg"
+    nasa_apod_template_name = "images/images_NASA/{title}{ext}"
+    nasa_epic_template_name = "images/images_EPIC/{title}.png"
+
+    make_directory(spacex_path_name)
+    fetch_spacex_lunch(flight_number, spacex_template_name, get_image)
+    make_directory(nasa_apod_path_name)
+    fetch_nasa_apod(token,images_quantity, nasa_apod_template_name, get_image, get_extension)
+    make_directory(nasa_epic_path_name)
+    fetch_nasa_epic(token,nasa_epic_template_name, get_image)
+    
     
