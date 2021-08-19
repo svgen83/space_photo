@@ -20,6 +20,6 @@ if __name__ == "__main__":
     while True:
         for space_images_path in space_images_pathes:
             if os.path.getsize(space_images_path)>0:
-                bot.send_document(chat_id=channel_chat_id,document=open(space_images_path, 'rb'))
+                bot.send_photo(chat_id=channel_chat_id,photo=open(space_images_path, 'rb'))
             time.sleep(86400)
    
