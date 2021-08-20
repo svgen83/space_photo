@@ -1,11 +1,13 @@
-import requests
-import pathlib
+import datetime
 import os
+import pathlib
+import random
 from urllib.parse import urlsplit
 from urllib.parse import unquote
-import datetime
-import random
+
+import requests
 from dotenv import load_dotenv
+
 
 
 def make_directory(path_name):
