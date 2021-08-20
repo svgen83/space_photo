@@ -76,13 +76,11 @@ if __name__ == "__main__":
     token = os.getenv("NASA_TOKEN")
     
     flight_number = random.randint(1,157)
-    images_quantity = 30
+    image_quantity = 30
 
     make_directory("./images/images_SPACEX")
     fetch_spacex_lunch(flight_number)
     make_directory("./images/images_NASA")
-    fetch_nasa_apod(token,images_quantity)
+    fetch_nasa_apod(token,image_quantity)
     make_directory("./images/images_EPIC")
     fetch_nasa_epic(token)
-    
-    
