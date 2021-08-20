@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 def make_directory(path_name):
     pathlib.Path(path_name).mkdir(parents=True, exist_ok=True)
 
+
 def download_image(url, file_name, params = None):
     response = requests.get(url, params)
     response.raise_for_status()
@@ -37,7 +38,7 @@ def fetch_spacex_lunch(flight_number):
         file_name = spacex_template.format(filenumber)
         download_image(link, file_name)
 
-        
+
 def fetch_nasa_apod(token, images_quantity):
     nasa_endpoint = "https://api.nasa.gov/planetary/apod"
     nasa_apod_template = "images/images_NASA/{title}{ext}"
