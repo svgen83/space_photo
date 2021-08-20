@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 def make_directory(path_name):
     pathlib.Path(path_name).mkdir(parents=True, exist_ok=True)
 
-def get_image(url, file_name, params = None):
+def download_image(url, file_name, params = None):
     response = requests.get(url, params)
     response.raise_for_status()
     with open(file_name, "wb") as file:
@@ -29,18 +29,18 @@ def get_extension(url):
 
 def fetch_spacex_lunch(flight_number):
     spacex_url = "https://api.spacexdata.com/v4/launches/"
-    spacex_template_name = "images/images_SPACEX/spacex{}.jpg"
+    spacex_template = "images/images_SPACEX/spacex{}.jpg"
     response = requests.get(spacex_url)
     response.raise_for_status()
     links = response.json()[flight_number]["links"]["flickr"]["original"]
     for filenumber, link in enumerate(links):
-        file_name = spacex_template_name.format(filenumber)
-        get_image(link, file_name)
+        file_name = spacex_template.format(filenumber)
+        download_image(link, file_name)
 
         
 def fetch_nasa_apod(token, images_quantity):
     nasa_endpoint = "https://api.nasa.gov/planetary/apod"
-    nasa_apod_template_name = "images/images_NASA/{title}{ext}"
+    nasa_apod_template = "images/images_NASA/{title}{ext}"
     params = {"api_key": token, "count": images_quantity}
     response = requests.get(nasa_endpoint, params=params)
     response.raise_for_status()
@@ -49,13 +49,13 @@ def fetch_nasa_apod(token, images_quantity):
         url = image_description["url"]
         title = image_description["title"]
         ext = get_extension(url)
-        file_name = nasa_apod_template_name.format(title=title, ext=ext)
-        get_image(url, file_name)
+        file_name = nasa_apod_template.format(title=title, ext=ext)
+        download_image(url, file_name)
 
 
 def fetch_nasa_epic(token):
     epic_endpoint = "https://api.nasa.gov/EPIC/api/natural/images"
-    nasa_epic_template_name = "images/images_EPIC/{title}.png"
+    nasa_epic_template = "images/images_EPIC/{title}.png"
     params = {"api_key": token}
     response = requests.get(epic_endpoint, params=params)
     response.raise_for_status()
@@ -64,11 +64,11 @@ def fetch_nasa_epic(token):
     for image_description in image_descriptions:
         title = image_description["image"]
         image_date = image_description["date"]
-        a_date_time = datetime.datetime.fromisoformat(image_date)
-        file_date = a_date_time.strftime("%Y/%m/%d")
+        date_time = datetime.datetime.fromisoformat(image_date)
+        file_date = date_time.strftime("%Y/%m/%d")
         url = image_endpoint.format(file_date=file_date, title=title)
-        file_name = nasa_epic_template_name.format(title=title)
-        get_image(url, file_name, params=params)
+        file_name = nasa_epic_template.format(title=title)
+        download_image(url, file_name, params=params)
 
 
 if __name__ == "__main__":
@@ -83,5 +83,6 @@ if __name__ == "__main__":
     make_directory("./images/images_NASA")
     fetch_nasa_apod(token,images_quantity)
     make_directory("./images/images_EPIC")
-    fetch_nasa_epic(token) 
+    fetch_nasa_epic(token)
+    
     
