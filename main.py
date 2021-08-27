@@ -36,7 +36,7 @@ def fetch_spacex_lunch(flight_number, image_folder):
     links = response.json()[flight_number]["links"]["flickr"]["original"]
 
     for filenumber, link in enumerate(links):
-        file_name = (image_folder + "{}{}{}").format("spacex",filenumber,".jpg")
+        file_name = (image_folder + "{}{}{}").format("spacex", filenumber, ".jpg")
         download_image(link, file_name)
 
 
