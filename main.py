@@ -28,7 +28,7 @@ def get_extension(url):
     return extension
 
 
-def fetch_spacex_lunch(flight_number, image_folder):
+def fetch_spacex_lunch(flight_number, image_folder, file_name_template):
     spacex_url = "https://api.spacexdata.com/v4/launches/"
     
     response = requests.get(spacex_url)
@@ -36,11 +36,11 @@ def fetch_spacex_lunch(flight_number, image_folder):
     links = response.json()[flight_number]["links"]["flickr"]["original"]
 
     for filenumber, link in enumerate(links):
-        file_name = (image_folder + "{}{}{}").format("spacex", filenumber, ".jpg")
+        file_name = file_name_template.format(filenumber)
         download_image(link, file_name)
 
 
-def fetch_nasa_apod(token, image_folder, images_quantity):
+def fetch_nasa_apod(token, image_folder, file_name_template, images_quantity):
     nasa_endpoint = "https://api.nasa.gov/planetary/apod"
     params = {"api_key": token, "count": images_quantity}
     
@@ -52,11 +52,11 @@ def fetch_nasa_apod(token, image_folder, images_quantity):
         url = image_description["url"]
         title = image_description["title"]
         ext = get_extension(url)
-        file_name = (image_folder + "{title}{ext}").format(title=title, ext=ext)
+        file_name = file_name_template.format(title, ext)
         download_image(url, file_name)
 
 
-def fetch_nasa_epic(token, image_folder):
+def fetch_nasa_epic(token, image_folder, file_name_template):
     epic_endpoint = "https://api.nasa.gov/EPIC/api/natural/images"
     params = {"api_key": token}
     
@@ -71,7 +71,7 @@ def fetch_nasa_epic(token, image_folder):
         date_time = datetime.datetime.fromisoformat(image_date)
         file_date = date_time.strftime("%Y/%m/%d")
         url = image_endpoint.format(file_date=file_date, title=title)
-        file_name = (image_folder + "{0}{1}").format(title, ".png")
+        file_name = file_name_template.format(title)
         download_image(url, file_name, params=params)
 
 
@@ -86,9 +86,13 @@ if __name__ == "__main__":
     nasa_folder = "./images/images_NASA/"
     epic_folder = "./images/images_EPIC/"
 
+    spacex_template = "images/images_SPACEX/spacex{}.jpg"
+    nasa_apod_template = "images/images_NASA/{0}{1}"
+    nasa_epic_template = "images/images_EPIC/{}.png"
+
     make_directory(spacex_folder)
-    fetch_spacex_lunch(flight_number, spacex_folder)
+    fetch_spacex_lunch(flight_number, spacex_folder, spacex_template)
     make_directory(nasa_folder)
-    fetch_nasa_apod(token,nasa_folder, image_quantity)
+    fetch_nasa_apod(token,nasa_folder, nasa_apod_template, image_quantity)
     make_directory(epic_folder)
-    fetch_nasa_epic(token, epic_folder)
+    fetch_nasa_epic(token, epic_folder, nasa_epic_template)
